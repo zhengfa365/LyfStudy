@@ -10,6 +10,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.widget.OverScroller
+import androidx.core.animation.doOnEnd
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import com.lyf.study.dp
@@ -37,7 +38,14 @@ class ScaleImageView(context: Context?, attrs: AttributeSet?) : View(context, at
             invalidate()
         }
     private val scaleAnimator: ObjectAnimator by lazy {
-        ObjectAnimator.ofFloat(this, "scaleFraction", 0f, 1f)
+        ObjectAnimator.ofFloat(this, "scaleFraction", 0f, 1f).apply {
+            doOnEnd {
+                if (!big) {
+                    offsetX = 0f
+                    offsetY = 0f
+                }
+            }
+        }
     }
     private val scroller = OverScroller(context)
 
@@ -57,7 +65,7 @@ class ScaleImageView(context: Context?, attrs: AttributeSet?) : View(context, at
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas.translate(offsetX, offsetY)
+        canvas.translate(offsetX * scaleFraction, offsetY * scaleFraction)
         val scale = smallScale + (bigScale - smallScale) * scaleFraction
         canvas.scale(scale, scale, width / 2f, height / 2f)
         canvas.drawBitmap(bitmap, oriOffsetX, oriOffsetY, paint)
@@ -109,7 +117,7 @@ class ScaleImageView(context: Context?, attrs: AttributeSet?) : View(context, at
             offsetY = scroller.currY.toFloat()
             invalidate()
         }
-        ViewCompat.postOnAnimation(this,this)
+        ViewCompat.postOnAnimation(this, this)
     }
 
     override fun onScroll(
